@@ -1,5 +1,4 @@
-// CAN Send Example
-//
+//To only display the characters from the symbol table in the serial monitor, set onlyPrintSymTab = 1
 
 #include <mcp_can.h>
 #include <SPI.h>
@@ -14,6 +13,7 @@ byte T5ReadFromSram[8] = {0xC7, 0x00, 0x00, 0x10, 0x2D, 0x00, 0x00, 0x00}; //Com
 byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
 byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
 byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
+int onlyPrintSymTab = 1;
 
 #define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
 MCP_CAN CAN0(10);     // Set CS to pin 10 for the Sparkfun CAN BUS shield
@@ -46,14 +46,30 @@ void loop()
 
   //Read message
   Read_msg(); //Read the incoming message T5
+  
+  delay(200);
+  
+  // Send command #2 to read symbol table
+  for(int i = 0; i<8; i++){
+        (data[i] = T5ReadSymTab2[i]);
+      }
+  Send_msg();
+  PrintHex8(data,8); Serial.print("\n");
+  
+  delay(200);
 
-  //Send ack to Trionic 100 times to get the first 100 symbols in the symbol table, or whatever might be sent from T5
-  for(int s = 0; s<100; s++){
+  //Read message
+  Read_msg();
+
+  //Send ack to Trionic 1000 times to get the first 1000 characters in the symbol table
+  for(int s = 0; s<=1000; s++){
        for(int i = 0; i<8; i++){
        (data[i] = T5SendAck[i]);
       }
   Send_msg();
-  PrintHex8(data,8); Serial.print("\n"); //Prints the sent data to the serial monitor, just to be sure the correct data is being sent
+  if(onlyPrintSymTab == 0){
+    PrintHex8(data,8); Serial.print("\n"); //Prints the sent data to the serial monitor, just to be sure the correct data is being sent 
+  }
   
   delay(10); //Not sure if a delay is needed here, but we'll start with 10 ms
 
@@ -62,29 +78,6 @@ void loop()
   delay(10); //Not sure if a delay is needed here, but we'll start with 10 ms
       }
 
-//  delay(200);
-
-// Send command #2 to read symbol table
-//  for(int i = 0; i<8; i++){
-//        (data[i] = T5ReadSymTab2[i]);
-//      }
-//  Send_msg();
-//  PrintHex8(data,8); Serial.print("\n");
-//  
-//  delay(200);
-//
-//  //Read message
-//  Read_msg();
-
-//Send ack to Trionic 100 times to get the first 100 symbols in the symbol table
-//  for(int s = 0; s<100; s++){
-//       for(int i = 0; i<8; i++){
-//       (data[i] = T5SendAck[i]);
-//      }
-//  Send_msg();
-//  delay(10);
-//      }
-
   delay(60000);
   
 }
@@ -92,7 +85,9 @@ void loop()
 void Send_msg(){
   sndStat = CAN0.sendMsgBuf(0x05, 0, 8, data);
   if(sndStat == CAN_OK){
-    Serial.print("Message Sent Successfully!");
+    if(onlyPrintSymTab == 0){
+      Serial.print("Message Sent Successfully!");
+    }
   } else {
     Serial.print("Error Sending Message: ");
   }
@@ -116,9 +111,13 @@ if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, re
     if((rxId & 0x80000000) == 0x80000000)     // Determine if ID is standard (11 bits) or extended (29 bits)
       sprintf(msgString, "Extended ID: 0x%.8lX  DLC: %1d  Data:", (rxId & 0x1FFFFFFF), len);
     else
-      sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
-  
-    Serial.print(msgString);
+      if(onlyPrintSymTab == 0){
+        sprintf(msgString, "Standard ID: 0x%.3lX       DLC: %1d  Data:", rxId, len);
+      }
+
+    if(onlyPrintSymTab == 0){
+      Serial.print(msgString);
+    }
   
     if((rxId & 0x40000000) == 0x40000000){    // Determine if message is a remote request frame.
       sprintf(msgString, " REMOTE REQUEST FRAME");
@@ -126,11 +125,15 @@ if(!digitalRead(CAN0_INT))                         // If CAN0_INT pin is low, re
     } else {
       for(byte i = 0; i<len; i++){
         sprintf(msgString, " 0x%.2X", rxBuf[i]);
-        Serial.print(msgString);
+        if(onlyPrintSymTab == 0){
+          Serial.print(msgString);
+        }
       }
     }
-    Serial.println();  
-    Serial.println(rxBuf[2],DEC);
+    if(onlyPrintSymTab == 0){
+      Serial.println();
+    }
+    Serial.println(rxBuf[2],HEX);
   }
 }
 
