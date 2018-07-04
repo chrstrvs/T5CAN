@@ -10,19 +10,19 @@ unsigned char rxBuf[128];
 char msgString[128];                        // Array to store serial string
 byte data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 byte sndStat;
-byte T5ReadFromSram[8] = {0xC7, 0x00, 0x00, 0x10, 0x2D, 0x00, 0x00, 0x00};
-byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+byte T5ReadFromSram[8] = {0xC7, 0x00, 0x00, 0x10, 0x2D, 0x00, 0x00, 0x00}; //Command to read Kyl_temp in my specific T5 binary
+byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
+byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
+byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
 
-#define CAN0_INT 2    // Set INT to pin 2
-MCP_CAN CAN0(10);     // Set CS to pin 10
+#define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
+MCP_CAN CAN0(10);     // Set CS to pin 10 for the Sparkfun CAN BUS shield
 
 void setup()
 {
   Serial.begin(115200);
 
-  // Initialize MCP2515 running at 16MHz with a baudrate of 500kb/s and the masks and filters disabled.
+  // Initialize MCP2515 running at 16MHz with a baudrate of 615kb/s and the masks and filters disabled.
   if(CAN0.begin(MCP_ANY, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
   else
@@ -35,28 +35,34 @@ void setup()
 
 void loop()
 {
-  // Send command #1 to read symbol table
+  // Send command #1 to read symbol table. The for loop copies the data from the byte array T5ReadSymTab1 to the byte array data
   for(int i = 0; i<8; i++){
         (data[i] = T5ReadSymTab1[i]);
       }
-  Send_msg();
-  PrintHex8(data,8); Serial.print("\n");
+  Send_msg(); //Sends the data to T5
+  PrintHex8(data,8); Serial.print("\n"); //Prints the sent data to the serial monitor, just to be sure the correct data is being sent
   
   delay(200);
 
   //Read message
-  Read_msg();
+  Read_msg(); //Read the incoming message T5
 
-  //Send ack to Trionic 100 times to get the first 100 symbols in the symbol table
+  //Send ack to Trionic 100 times to get the first 100 symbols in the symbol table, or whatever might be sent from T5
   for(int s = 0; s<100; s++){
        for(int i = 0; i<8; i++){
        (data[i] = T5SendAck[i]);
       }
   Send_msg();
-  delay(10);
+  PrintHex8(data,8); Serial.print("\n"); //Prints the sent data to the serial monitor, just to be sure the correct data is being sent
+  
+  delay(10); //Not sure if a delay is needed here, but we'll start with 10 ms
+
+  Read_msg(); //Read the incoming message T5
+
+  delay(10); //Not sure if a delay is needed here, but we'll start with 10 ms
       }
 
-  delay(200);
+//  delay(200);
 
 // Send command #2 to read symbol table
 //  for(int i = 0; i<8; i++){
@@ -78,6 +84,8 @@ void loop()
 //  Send_msg();
 //  delay(10);
 //      }
+
+  delay(60000);
   
 }
 
