@@ -1,11 +1,17 @@
 To do:
 
 2018-07-02
-- Test send command to read Kyl_temp at 00102D. Successful!
+- Test send command to read Kyl_temp at 00102D.
+  Successful!
 
 2018-07-03
-- Verify command to read Kyl_temp at 00102D without sendning ack after, since it doesn't seem like it's needed. Verified!
-- Test what command(s) reads the symbol table. Is it S first and the CR repeatedly, or S repeatedly?
+- Verify command to read Kyl_temp at 00102D without sendning ack after, since it doesn't seem like it's needed.
+  Verified!
+- Test what command(s) reads the symbol table. Is it S first and then CR repeatedly, or S repeatedly?
+  The answer is first S, then CR, then ACK repeatedly. Each ack makes T5 send one single character in the symbol table.
+  In my binary there are 426 symbols. Each symbol has a character length of 8 plus the length of the name. If every symbol has a
+  name length of 10 characters there would be (8+10)*426=7662 characters to read in the symbol table plus the delimiter which is
+  first D and then A.
 - Read symbol table and see what it looks like and how big it is.
-
+  Answer is above.
 
