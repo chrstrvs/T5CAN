@@ -12,6 +12,14 @@ To do:
   In my binary there are 426 symbols. Each symbol has a character length of 8 plus the length of the name. If every symbol has a
   name length of 10 characters there would be (8+10)*426=7662 characters to read in the symbol table plus the delimiter which is
   first D and then A.
+  It seems that the first 4 characters is the address. If T5 sends 1023, the address would be AL=0x10 AH=0x23.
+  Then there are 4 characters that I don't know what they mean.
+  Then comes the symbol name.
+  Then comes the delimiter which, as previously stated, is D and then A.
 - Read symbol table and see what it looks like and how big it is.
   Answer is above.
+
+2018-07-04
+- Figure out a way to extract the address to a specific symbol after reading the symbol table, or a small part of it.
+- Send a request to read that symbol.
 
