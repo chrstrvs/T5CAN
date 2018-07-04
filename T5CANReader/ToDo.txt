@@ -1,9 +1,0 @@
-To do:
-
-2018-07-02
-- Test send command to read Kyl_temp at 00102D. Successful!
-
-2018-07-03
-- Test send command to read Kyl_temp at 00102D without sendning ack after, since it doesn't seem like it's needed.
-- Test send command to read symbol table and see what it looks like and how big it is.
-
