@@ -1,0 +1,6 @@
+- turbo timer for engine shutoff
+- gear shift indicator possibly gear dependant
+- symbol table download on command, with percentage bar.
+- write program control flags, (Pgm_mod!)
+- knock light
+- 
