@@ -10,8 +10,8 @@ byte data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 byte sndStat;
 byte T5ReadFromSram[8] = {0xC7, 0x00, 0x00, 0x10, 0x2D, 0x00, 0x00, 0x00}; //Command to read Kyl_temp in my specific T5 binary
 byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
-byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
-byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
+byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1/2
+byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2/2
 int onlyPrintSymTab = 1;
 
 
@@ -85,10 +85,10 @@ void getSymbolTable() {
   byte b = 0x00;
   bool D = false;
   int count = 0;
-  // address = 4 char, length = 4 char, name = 12 char. (ascii)
+  // address = 4 char, length = 4 char, name = 20 char. (ascii)
   byte SymbolData[28];
 
-  for (int s = 0; s <= (1000*32); s++) {
+  for (int s = 0; s <= (1000 * 32); s++) {
     for (int i = 0; i < 8; i++) {
       (data[i] = T5SendAck[i]);
     }
@@ -146,7 +146,7 @@ void getSymbolTable() {
       Serial.print("Symbol nr: ");
       Serial.println(count);
       Serial.println();
-Serial.println();
+      Serial.println();
 
     }
     else {
