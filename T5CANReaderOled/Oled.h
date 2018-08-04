@@ -17,9 +17,8 @@ void showBoostText(byte nr) {
   display1.clearDisplay();
   display1.setFont(&Dialog_plain_48);
   display1.setCursor(0, 53);
-  int16_t kPa = getSymbol(nr);
-  display1.print(" ");
+  int16_t kPa = (getSymbol(nr) - 100);
+  //display1.print(" ");
   display1.print(float(kPa) / 100, 2);
   display1.display(); //you have to tell the display to...display
-
 }

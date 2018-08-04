@@ -4,6 +4,7 @@
 
 #define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
 MCP_CAN CAN0(10);     // Set CS to pin 10 for the Sparkfun CAN BUS shield
+
 long unsigned int rxId;
 unsigned char len = 0;
 unsigned char rxBuf[8];
@@ -23,7 +24,7 @@ void setT5CAN() {
   Serial.begin(115200);
   // Initialize MCP2515 running at 16MHz,
   //with a baudrate of 615kb/s and the masks and filters disabled.
-  if (CAN0.begin(MCP_ANY, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
+  if (CAN0.begin(MCP_STD, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
   else
     Serial.println("Error Initializing MCP2515...");
@@ -71,6 +72,9 @@ void Read_msg() {
     // Serial.println(rxBuf[4], DEC); // 3rd byte
 
   }
+  else {
+    Serial.println("error reading message");
+  }
   Serial.println();
 }
 
@@ -101,6 +105,10 @@ uint16_t getSymbol(byte nr) {
       Serial.println("error: symbol length more than 2");
       return 0;
     }
+  }
+  else {
+    Serial.println("error reading message");
+    return 0;
   }
 }
 
