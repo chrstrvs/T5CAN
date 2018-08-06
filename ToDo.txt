@@ -24,10 +24,10 @@ To do:
 - Send a request to read that symbol. 
 
 2018-07-08
-- the symbol table request returns ascii characters in decimal, they should be saved and used as bytes in hex. so for example in adress 0x486C, 6 is recieved as 54 and C is recieved as 67. thus 54 => 6 and 67 => C. then 2 characters have to be put in 1 byte, so 6 and C will be 0x6C.
-- make a list of symbols we want to use, symbol table is way to big so we only save addresses of symbols we use. 	see Symbols we use.xlsx
+- the symbol table request returns ascii characters in decimal, they should be saved and used as bytes in hex. so for example in adress 0x486C, 6 is recieved as 54 and C is recieved as 67. thus 54 => 6 and 67 => C. then 2 characters have to be put in 1 byte, so 6 and C will be 0x6C. Edit by Christian: Not needed. It dosen't matter if you display it as hex, dec or anything else. The Arduino knows how to use it anyway.
+- make a list of symbols we want to use, symbol table is way to big so we only save addresses of symbols we use. 	see Symbols we use.xlsx Edit by Christian: I've made the symbol reader so simple that changing what symbols you want to use is as simple as typing the name of the symbol.
 - the second 4 characters, at least the last two of it, are for length. the length probably mean data length?
-- determin the amount of symbols is T5.
-- determin the maximum length of a symbol name.
+- determin the amount of symbols is T5. Edit by Christian: The symbol reader counts the number of symbols, even though it is not important for us to know.
+- determin the maximum length of a symbol name. Edit by Christian: Not needed. I've made the buffer 32 characters long. Should this not be sufficent, just change the array length of symbolBuf and symbolCompare.
 - make a list of advanced features we could make. 	see advanced features list.txt
-- design the program structure and flow, before we start coding like crazy.
+- design the program structure and flow, before we start coding like crazy. Edit by Christian: Too late. I'm coding like crazy every minute I can =)
