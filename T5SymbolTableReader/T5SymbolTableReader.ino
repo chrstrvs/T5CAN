@@ -12,8 +12,8 @@ byte sndStat;
 byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
 byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
 byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
-byte T5ReadFromSram[10][8];
-String T5SearchForSymbols[10] = {"P_Manifold", "AD_EGR", "AD_trot"};
+byte T5ReadFromSram[10][8]; //The symbols that are found are stored here
+String T5SearchForSymbols[10] = {"P_Manifold", "AD_EGR", "AD_trot"}; //Enter the symbols that you want to search for and use here
 char symbolBuf[32];
 char rxBufChar;
 String rxBufString;
@@ -39,7 +39,7 @@ void setup() {
 
   pinMode(CAN0_INT, INPUT);   // Configuring pin for /INT input
 
-  // Send command #1 to read symbol table. The for loop copies the data from the byte array T5ReadSymTab1 to the byte array data
+  // Send command #1 to read symbol table
   for (int i = 0; i < 8; i++) {
     (data[i] = T5ReadSymTab1[i]);
   }
@@ -61,6 +61,7 @@ void setup() {
     (data[i] = T5SendAck[i]);
   }
 
+  // Stop reading from the symbol table when Trionic says that all symbols have been read
   for (symbolCounter = 0; symbolCounter <= readSymbols;) {
     if (rxBufString.indexOf("END") > 0) {
       Send_msg();
@@ -74,6 +75,7 @@ void setup() {
 
   Read_msg(); //Read the incoming message T5
 
+  // Print the saaved symbols to the serial monitor
   for (int p = 0; p < sizeof (T5ReadFromSram) / sizeof (T5ReadFromSram[0]);) {
     Serial.println(String(T5SearchForSymbols[p]) + " " + T5ReadFromSram[p][3] + T5ReadFromSram[p][4]);
     p++;
@@ -101,16 +103,18 @@ void Read_msg() {
     if (getSymbolTableDone == 0) {
       //Compile a string of the incoming message unless rxBuf[2] == 0x0D or 0x0A, which marks the end of a read symbol
       if (rxBuf[2] != 0x0D || rxBuf[2] != 0x0A) {
-        rxBufChar = rxBuf[2];                   //Convert the incoming message to char
+        rxBufChar = rxBuf[2];                   //Convert the incoming message to char. Probably not needed. Will test later
         rxBufString = rxBufString + rxBufChar;  //Add the char to the string rxBufString
       }
 
+      // If a whole symbol has been read, compare it to the symbols in T5SearchForSymbols
       if (rxBuf[2] == 0x0D) {
         rxBufString.trim();
         symbolLength = rxBufString.length();
         rxBufString.substring(8, symbolLength).toCharArray(symbolCompare, symbolLength);
         Serial.println(String(symbolCounter) + " " + symbolCompare + " " + rxBufString.substring(0, 4) + " " + rxBufString.substring(4, 8));
 
+        // If the read symbol matches one in T5SearchForSymbols, save it in T5ReadFromSram
         for (int l = 0; l < sizeof (T5ReadFromSram) / sizeof (T5ReadFromSram[0]);) {
           T5SearchForSymbols[l].toCharArray(symbolBuf, 32);
           if (strcmp(symbolCompare, symbolBuf) == 0) {
@@ -123,8 +127,8 @@ void Read_msg() {
           l++;
         }
 
-        rxBufString = ""; //Empty the string buffer
-        symbolCounter++;
+        rxBufString = ""; // Empty the string buffer
+        symbolCounter++; // Just a counter for the number of symbols read
       }
     }
   }
