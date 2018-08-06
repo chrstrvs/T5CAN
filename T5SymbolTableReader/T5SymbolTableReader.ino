@@ -12,8 +12,8 @@ byte sndStat;
 byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
 byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
 byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
-byte T5ReadFromSram[3][8];
-String T5SearchForSymbols[3] = {"P_Manifold", "AD_EGR", "AD_trot"};
+byte T5ReadFromSram[10][8];
+String T5SearchForSymbols[10] = {"P_Manifold", "AD_EGR", "AD_trot"};
 char symbolBuf[32];
 char rxBufChar;
 String rxBufString;
