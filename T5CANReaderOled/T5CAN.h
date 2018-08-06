@@ -19,12 +19,15 @@ byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Comm
 byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
 byte T5ReadCommand[8] = {0xC4, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+// run this at setup,
+// it initializes the canbus
+/////////////////////////////////////
 void setT5CAN() {
   setSymbols();
   Serial.begin(115200);
   // Initialize MCP2515 running at 16MHz,
   //with a baudrate of 615kb/s and the masks and filters disabled.
-  if (CAN0.begin(MCP_STD, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
+  if (CAN0.begin(MCP_ANY, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
     Serial.println("MCP2515 Initialized Successfully!");
   else
     Serial.println("Error Initializing MCP2515...");
@@ -32,6 +35,9 @@ void setT5CAN() {
   pinMode(CAN0_INT, INPUT);   // Configuring pin for /INT input
 
 }
+
+// serial print in hex representation
+/////////////////////////////////////
 void PrintHex8(uint8_t *ddata, uint8_t length) // prints 8-bit data in hex with leading zeroes
 {
   for (int i = 0; i < length; i++) {
@@ -45,6 +51,8 @@ void PrintHex8(uint8_t *ddata, uint8_t length) // prints 8-bit data in hex with 
   Serial.println();
 }
 
+// sends msg to T5
+/////////////////////////////////////
 void Send_msg(byte msg[8]) {
   sndStat = CAN0.sendMsgBuf(0x05, 0, 8, msg);
   if (sndStat == CAN_OK) {
@@ -57,6 +65,10 @@ void Send_msg(byte msg[8]) {
   }
 }
 
+// reads msg from T5
+// standard 1 length symbols are returned to rxBuf[2]
+// second byte to rxBuf[3] etc.
+/////////////////////////////////////
 void Read_msg() {
   byte dat[8] = {0x00};
   if (!digitalRead(CAN0_INT))                        // If CAN0_INT pin is low, read receive buffer
@@ -78,13 +90,19 @@ void Read_msg() {
   Serial.println();
 }
 
-uint16_t getSymbol(byte nr) {
+// returns an unsigned int of 16 bits
+// nr = symbol index nr
+// works for 1 and 2 length symbols
+/////////////////////////////////////
+float getSymbol(byte nr) {
   byte data[8] = {0xC7, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to read sram
   data[4] = symbol_Address[nr]; //AL
   data[3] = (symbol_Address[nr] >> 8); //AH
 
+  uint16_t value = 0;
+
   Send_msg(data); //Sends the data to T5
-  delay(200); // wait before reading recieved message
+  //delay(10); // wait before reading recieved message
 
   //Read message
   if (!digitalRead(CAN0_INT))                        // If CAN0_INT pin is low, read receive buffer
@@ -95,16 +113,16 @@ uint16_t getSymbol(byte nr) {
       data[i] = rxBuf[i];
     }
     if (symbol_Length[nr] == 1) {
-      return rxBuf[2]; // 1st byte
+      value = rxBuf[2]; // 1st byte
     }
     else if (symbol_Length[nr] == 2) {
-      uint16_t val = rxBuf[2] | (rxBuf[3] << 8);
-      return val;
+      value = rxBuf[2] | (rxBuf[3] << 8);
     }
     else {
       Serial.println("error: symbol length more than 2");
-      return 0;
     }
+    return  ((value + symbol_offset[nr]) * symbol_factor[nr]);
+
   }
   else {
     Serial.println("error reading message");
@@ -112,59 +130,17 @@ uint16_t getSymbol(byte nr) {
   }
 }
 
+// Serial print the symbol value
+// outputs corrected and formatted nr
+/////////////////////////////////////
 void printSymbol(byte nr) {
   // manipulate the recieved data to view it correctly
-  int16_t value = 0;
-  switch (nr) {
-    case P_Manifold:
-      value = (getSymbol(nr) - 100) * 0.01;
-      break;
-    case P_Manifold10:
-      value = (getSymbol(nr) - 100) * 0.01;
-      break;
-    case Medeltryck:
-      value = getSymbol(nr);
-      break;
-    case Regl_tryck:
-      value = getSymbol(nr);
-      break;
-    case Medellast:
-      value = getSymbol(nr);
-      break;
-    case Batt_volt:
-      value = getSymbol(nr);
-      break;
-    case Kyl_temp:
-      value = getSymbol(nr);
-      break;
-    case Lufttemp:
-      value = getSymbol(nr);
-      break;
-    case Rpm:
-      value = getSymbol(nr);
-      break;
-    case Rpm_byte:
-      value = getSymbol(nr);
-      break;
-    case Rpm_pol:
-      value = getSymbol(nr);
-      break;
-    case Bil_hast:
-      value = getSymbol(nr);
-      break;
-    case Gear:
-      value = getSymbol(nr);
-      break;
-    case Apc_decrese:
-      value = getSymbol(nr);
-      break;
-    case Knock_status:
-      value = getSymbol(nr);
-      break;
-    default:
-      value = getSymbol(nr);
-      break;
-
-  }
-  Serial.println(symbol_Label[nr] + ": " + value + " " + symbol_Unit[nr]);
+  Serial.println(symbol_Label[nr] + ": " + getSymbol(nr) + " " + symbol_Unit[nr]);
 }
+
+// check symbols for alarming values
+/////////////////////////////////////
+void symbolAlert() {
+  //
+}
+
