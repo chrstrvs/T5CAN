@@ -10,8 +10,7 @@ char msgString[128];                        // Array to store Serial string
 byte data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 byte sndStat;
 byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
-byte T5ReadSymTab1[8] = {0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #1
-byte T5ReadSymTab2[8] = {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; //Command to read symbol table in T5 #2
+const byte T5ReadSymTab[2][8] {{0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
 byte T5ReadFromSram[10][8]; //The symbols that are found are stored here
 String T5SearchForSymbols[10] = {"P_Manifold", "AD_EGR", "AD_trot"}; //Enter the symbols that you want to search for and use here
 char symbolBuf[32];
@@ -39,22 +38,15 @@ void setup() {
 
   pinMode(CAN0_INT, INPUT);   // Configuring pin for /INT input
 
-  // Send command #1 to read symbol table
-  for (int i = 0; i < 8; i++) {
-    (data[i] = T5ReadSymTab1[i]);
+  //Send commands to read symbol table
+  for (int j = 0; j < sizeof (T5ReadSymTab) / sizeof (T5ReadSymTab[0]);) {
+    for (int i = 0; i < 8; i++) {
+      (data[i] = T5ReadSymTab[j][i]);
+    }
+    j++;
+    Send_msg();
+    Read_msg();
   }
-  Send_msg(); //Sends the data to T5
-
-  Read_msg(); //Read the incoming message T5
-
-  // Send command #2 to read symbol table
-  for (int i = 0; i < 8; i++) {
-    (data[i] = T5ReadSymTab2[i]);
-  }
-  Send_msg();
-
-  //Read message
-  Read_msg();
 
   //Read number of symbols set in readSymbols or until no more symbols are sent
   for (int i = 0; i < 8; i++) {
