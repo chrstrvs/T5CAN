@@ -810,5 +810,3 @@ const GFXglyph Dialog_plain_48Glyphs[] PROGMEM = {
 const GFXfont Dialog_plain_48 PROGMEM = {
 (uint8_t  *)Dialog_plain_48Bitmaps,(GFXglyph *)Dialog_plain_48Glyphs,0x20, 0x7E, 57};
 
-
-

@@ -4,22 +4,26 @@
 
 void setup()
 {
-  // initialize oled screen
-  setOled();
   // initialize can comunication
   setT5CAN();
-  
+  // initialize oled screen
+  setOled();
+
 }
 
 void loop()
 {
-  printSymbol(P_Manifold);
-//  delay(200); // wait before reading recieved message
-//  printSymbol(P_Manifold10);
-//  delay(200); // wait before reading recieved message
-//  printSymbol(Lufttemp);
-//  delay(200); // wait before reading recieved message
-  showBoostText(P_Manifold);
+  //  printSymbol(P_Manifold);
+  for (int i = 0; i < 30; i++) {
+    displayBoost(P_Manifold);
+    printSymbol(P_Manifold);
 
-  symbolAlert();
+  }
+  for (int i = 0; i < 30; i++) {
+    displayIat(Lufttemp);
+    printSymbol(Lufttemp);
+
+  }
+  //symbolAlert();
 }
+

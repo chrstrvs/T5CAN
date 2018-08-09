@@ -18,7 +18,7 @@ void setOled() {
 
 // prints boost value to oled screen
 /////////////////////////////////////
-void showBoostText(byte nr) {
+void displayBoost(byte nr) {
   display1.clearDisplay();
   display1.setFont(&Dialog_plain_48);
   display1.setCursor(0, 53);
@@ -26,3 +26,14 @@ void showBoostText(byte nr) {
   display1.print(getSymbol(nr), 2);
   display1.display(); //you have to tell the display to...display
 }
+// prints iat value to oled screen
+/////////////////////////////////////
+void displayIat(byte nr) {
+  display1.clearDisplay();
+  display1.setFont(&Dialog_plain_48);
+  display1.setCursor(0, 53);
+  //display1.print(" ");
+  display1.print(getSymbol(nr), 0);
+  display1.display(); //you have to tell the display to...display
+}
+

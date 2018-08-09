@@ -23,8 +23,8 @@ byte T5ReadCommand[8] = {0xC4, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 // it initializes the canbus
 /////////////////////////////////////
 void setT5CAN() {
-  setSymbols();
   Serial.begin(115200);
+  setSymbols();
   // Initialize MCP2515 running at 16MHz,
   //with a baudrate of 615kb/s and the masks and filters disabled.
   if (CAN0.begin(MCP_ANY, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
@@ -99,11 +99,12 @@ float getSymbol(byte nr) {
   data[4] = symbol_Address[nr]; //AL
   data[3] = (symbol_Address[nr] >> 8); //AH
 
-  uint16_t value = 0;
+  int16_t value = 0;
+  float v = 0;
 
   Send_msg(data); //Sends the data to T5
-  //delay(10); // wait before reading recieved message
-
+  delay(100); // wait before reading recieved message
+   
   //Read message
   if (!digitalRead(CAN0_INT))                        // If CAN0_INT pin is low, read receive buffer
   {
@@ -121,8 +122,8 @@ float getSymbol(byte nr) {
     else {
       Serial.println("error: symbol length more than 2");
     }
-    return  ((value + symbol_offset[nr]) * symbol_factor[nr]);
-
+    v = ((value + symbol_offset[nr]) * symbol_factor[nr]); 
+    return v;
   }
   else {
     Serial.println("error reading message");

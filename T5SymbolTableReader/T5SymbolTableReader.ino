@@ -1,7 +1,7 @@
 #include <mcp_can.h>
 
 #define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
-MCP_CAN CAN0(53);     // Set CS to pin 10 for Uno or 53 for Mega 2560 for the Sparkfun CAN BUS shield
+MCP_CAN CAN0(10);     // Set CS to pin 10 for Uno or 53 for Mega 2560 for the Sparkfun CAN BUS shield
 
 long unsigned int rxId;
 unsigned char len = 0;
