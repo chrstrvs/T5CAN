@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include <mcp_can.h>
 
 #define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
@@ -128,4 +129,132 @@ void Read_msg() {
       }
     }
   }
+=======
+#include <mcp_can.h>
+
+#define CAN0_INT 2    // Set INT to pin 2 for the Sparkfun CAN BUS shield
+MCP_CAN CAN0(53);     // Set CS to pin 10 for Uno or 53 for Mega 2560 for the Sparkfun CAN BUS shield
+
+long unsigned int rxId;
+unsigned char len = 0;
+unsigned char rxBuf[8];
+char msgString[128];                        // Array to store Serial string
+byte data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+byte sndStat;
+byte T5SendAck[8] = {0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; //Command to send acknowledge to T5
+const byte T5ReadSymTab[2][8] {{0xC4, 0x53, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, {0xC4, 0x0D, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}};
+byte T5ReadFromSram[10][8]; //The symbols that are found are stored here
+String T5SearchForSymbols[10] = {"P_Manifold", "AD_EGR", "AD_trot"}; //Enter the symbols that you want to search for and use here
+char symbolBuf[32];
+char rxBufChar;
+String rxBufString;
+char symbolCompare[32];
+int symbolLength;
+int symbolCounter;
+int readSymbols = 100; //Number of symbols to read
+char byteBuf[8];
+int getSymbolTableDone = 0;
+char *endptr;
+
+void setup() {
+
+  Serial.begin(115200);
+
+  // Initialize MCP2515 running at 16MHz with a baudrate of 615kb/s and the masks and filters disabled.
+  if (CAN0.begin(MCP_ANY, CAN_615KBPS, MCP_16MHZ) == CAN_OK)
+    Serial.println("MCP2515 Initialized Successfully!");
+  else
+    Serial.println("Error Initializing MCP2515...");
+
+  CAN0.setMode(MCP_NORMAL);   // Change to normal mode to allow messages to be transmitted
+
+  pinMode(CAN0_INT, INPUT);   // Configuring pin for /INT input
+
+  //Send commands to read symbol table
+  for (int j = 0; j < sizeof (T5ReadSymTab) / sizeof (T5ReadSymTab[0]);) {
+    for (int i = 0; i < 8; i++) {
+      (data[i] = T5ReadSymTab[j][i]);
+    }
+    j++;
+    Send_msg();
+    Read_msg();
+  }
+
+  //Read number of symbols set in readSymbols or until no more symbols are sent
+  for (int i = 0; i < 8; i++) {
+    (data[i] = T5SendAck[i]);
+  }
+
+  // Stop reading from the symbol table when Trionic says that all symbols have been read
+  for (symbolCounter = 0; symbolCounter <= readSymbols;) {
+    if (rxBufString.indexOf("END") > 0) {
+      Send_msg();
+      break;
+    }
+    Send_msg();
+
+    Read_msg(); //Read the incoming message T5
+
+  }
+
+  Read_msg(); //Read the incoming message T5
+
+  // Print the saaved symbols to the serial monitor
+  for (int p = 0; p < sizeof (T5ReadFromSram) / sizeof (T5ReadFromSram[0]);) {
+    Serial.println(String(T5SearchForSymbols[p]) + " " + T5ReadFromSram[p][3] + T5ReadFromSram[p][4]);
+    p++;
+  }
+
+  delay(1000);
+
+  getSymbolTableDone = 1;
+}
+
+void loop() {
+
+}
+
+void Send_msg() {
+  sndStat = CAN0.sendMsgBuf(0x05, 0, 8, data);
+}
+
+void Read_msg() {
+
+  if (!digitalRead(CAN0_INT))                        // If CAN0_INT pin is low, read receive buffer
+  {
+    CAN0.readMsgBuf(&rxId, &len, rxBuf);      // Read data: len = data length, buf = data byte(s)
+
+    if (getSymbolTableDone == 0) {
+      //Compile a string of the incoming message unless rxBuf[2] == 0x0D or 0x0A, which marks the end of a read symbol
+      if (rxBuf[2] != 0x0D || rxBuf[2] != 0x0A) {
+        rxBufChar = rxBuf[2];                   //Convert the incoming message to char. Probably not needed. Will test later
+        rxBufString = rxBufString + rxBufChar;  //Add the char to the string rxBufString
+      }
+
+      // If a whole symbol has been read, compare it to the symbols in T5SearchForSymbols
+      if (rxBuf[2] == 0x0D) {
+        rxBufString.trim();
+        symbolLength = rxBufString.length();
+        rxBufString.substring(8, symbolLength).toCharArray(symbolCompare, symbolLength);
+        Serial.println(String(symbolCounter) + " " + symbolCompare + " " + rxBufString.substring(0, 4) + " " + rxBufString.substring(4, 8));
+
+        // If the read symbol matches one in T5SearchForSymbols, save it in T5ReadFromSram
+        for (int l = 0; l < sizeof (T5ReadFromSram) / sizeof (T5ReadFromSram[0]);) {
+          T5SearchForSymbols[l].toCharArray(symbolBuf, 32);
+          if (strcmp(symbolCompare, symbolBuf) == 0) {
+            rxBufString.substring(0, 2).toCharArray(byteBuf, 3);
+            T5ReadFromSram[l][3] = strtol(byteBuf, &endptr, 16);
+            rxBufString.substring(2, 4).toCharArray(byteBuf, 3);
+            T5ReadFromSram[l][4] = strtol(byteBuf, &endptr, 16);
+            T5ReadFromSram[l][0] = 0xC7;
+          }
+          l++;
+        }
+
+        rxBufString = ""; // Empty the string buffer
+        symbolCounter++; // Just a counter for the number of symbols read
+      }
+    }
+  }
+>>>>>>> 879a51da6206692352db3b69eff39ed91fe03d18
 }
