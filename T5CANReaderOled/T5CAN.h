@@ -103,7 +103,7 @@ float getSymbol(byte nr) {
   float v = 0;
 
   Send_msg(data); //Sends the data to T5
-  delay(100); // wait before reading recieved message
+  delay(200); // wait before reading recieved message
    
   //Read message
   if (!digitalRead(CAN0_INT))                        // If CAN0_INT pin is low, read receive buffer
